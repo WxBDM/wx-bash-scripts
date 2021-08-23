@@ -1,15 +1,35 @@
 #!/usr/bin/env bash
 
-# Bash script to retrieve and display information about SPC outlooks.
+# Bash script to retrieve and display the highest categorial risk for the day.
 # Author: Brandon Molyneaux
 # Date: Monday, Aug 23 2021
+# Usage
+#   ./spc.sh date outlook
+# where:
+#   date is in YYYYMMDD format
+#   outlook is in zulu (1200 is 12z, etc)
+# Note: This assumes day 1. This will not assume any other days currently.
+
+# Validate user input for outlook.
+if [[ ! $1 ]]; then
+  printf "Date parameter is not entered.\n"
+  exit 1
+fi
+if [[ ! $2 ]]; then
+  printf "Outlook parameter is not entered.\n"
+  exit 1
+fi
+if [[ $2 != "0600" ]] && [[ $2 != "1300" ]] && [[ $2 != "1630" ]] && [[ $2 != "2000" ]] && [[ $2 != "0100" ]]; then
+  printf "%s is not a valid input for outlook time. Choose 0600, 1300, 1630, 2000, or 0100\n" "$2"
+  exit 1
+fi
 
 # Get day 1 outlook from server (using KML, easier to parse)
-save_dir="outlooks"
+save_dir="temp"
 # At a future point, make this dynamic so it gets the most recent.
 # For now, just use one.
-d1_otlk_link="https://www.spc.noaa.gov/products/outlook/archive/2021/day1otlk_20210823_1300.kmz"
-fname="day1otlk_20210823_1300"
+d1_otlk_link="https://www.spc.noaa.gov/products/outlook/archive/2021/day1otlk_${1}_${2}.kmz"
+fname="day1otlk_${1}_${2}"
 kmz_file="$save_dir/${fname}.kmz" # the name of the kmz file
 kml_file="$save_dir/${fname}.kml" # the name of the kml file
 
@@ -45,7 +65,7 @@ rm $save_dir/${fname}.kmz
 # Get all SimpleData with risk, this will allow us to get the highest risk for the day.
 # Iteratation through high, moderate, etc was the easiest solution.
 # note that slight and up may not be correct, needs to be fixed.
-for variable in "HIGH" "MODR" "ENHA" "SLGT" "MRGL" "TSTM"; do
+for variable in "HIGH" "MDT" "ENH" "SLGT" "MRGL" "TSTM"; do
   data="<SimpleData name=\"LABEL\">$variable"
   out=$(grep "$data" $save_dir/${fname}.kml) # save grep output in a variable
   if [[ ! $out ]]; then # if there isn't a risk of that category, go to the next.
@@ -59,6 +79,8 @@ done
 
 # remove the save directory too to keep the repo clean.
 if [[ -e $save_dir ]]; then
-  rm $save_dir/.DS_Store # only applicable on mac.
+  if [[ -e $save_dir/.DS_Store ]]; then
+    rm $save_dir/.DS_Store # only applicable on mac.
+  fi
   rmdir $save_dir
 fi
