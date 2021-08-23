@@ -21,7 +21,7 @@ fi
 # check to see if the file already exists.
 # NOTE: the URL will be dynamic at a later point. This check will change.
 if [[ -f $kmz_file ]]; then
-  echo "day1otlk_20210823_1300.kmz exists already. Exiting."
+  printf "%s exists already. Exiting." "$kmz_file"
   exit 1
 fi
 
@@ -43,13 +43,22 @@ rm $save_dir/$temp_zip
 rm $save_dir/${fname}.kmz
 
 # Get all SimpleData with risk, this will allow us to get the highest risk for the day.
+# Iteratation through high, moderate, etc was the easiest solution.
+# note that slight and up may not be correct, needs to be fixed.
 for variable in "HIGH" "MODR" "ENHA" "SLGT" "MRGL" "TSTM"; do
   data="<SimpleData name=\"LABEL\">$variable"
-  out=$(grep "$data" $save_dir/${fname}.kml)
-  if [[ ! $out ]]; then
+  out=$(grep "$data" $save_dir/${fname}.kml) # save grep output in a variable
+  if [[ ! $out ]]; then # if there isn't a risk of that category, go to the next.
     continue
-  else
+  else # otherwise, print out the highest risk and stop the loop.
     printf "\nHighest risk for the day: %s\n" "$variable"
+    rm $kml_file # remove the kml file
     break
   fi
 done
+
+# remove the save directory too to keep the repo clean.
+if [[ -e $save_dir ]]; then
+  rm $save_dir/.DS_Store # only applicable on mac.
+  rmdir $save_dir
+fi
