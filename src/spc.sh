@@ -13,5 +13,22 @@ if [[ ! -e $save_dir ]]; then
   mkdir $save_dir # if it doesn't create it.
 fi
 
+# check to see if the file already exists.
+# NOTE: the URL will be dynamic at a later point. This check will change.
+fname="day1otlk_20210823_1300"
+if [[ -f "$fname" ]]; then
+  echo "day1otlk_20210823_1300.kmz exists already. Exiting."
+  exit 1
+fi
+
 # get the file from the server
 wget -P $save_dir $d1_otlk_link
+
+# Zip the file, then unzip. This gets KML version.
+temp_zip="temp.zip"
+cp $save_dir/"${fname}.kmz" $save_dir/$temp_zip
+unzip $save_dir/$temp_zip -d $save_dir
+
+# Delete the zip file, it's not needed.
+rm $save_dir/$temp_zip
+rm $save_dir/${fname}.kml
