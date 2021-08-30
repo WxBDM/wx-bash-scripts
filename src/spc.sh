@@ -82,6 +82,10 @@ for variable in "HIGH" "MDT" "ENH" "SLGT" "MRGL" "TSTM"; do
   fi
 done
 
+if [[ ! $out ]]; then
+  printf "No risk identified\n"
+fi
+
 # remove the save directory too to keep the repo clean.
 if [[ -e $save_dir ]]; then
   # Remove .DS_Store on macs.
